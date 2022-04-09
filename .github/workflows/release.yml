@@ -11,6 +11,7 @@ permissions:
 env:
   CARGO_INCREMENTAL: 0
   CARGO_NET_RETRY: 10
+  PROTOC_NO_VENDOR: 1
   RUST_BACKTRACE: short
   RUSTUP_MAX_RETRIES: 10
 
@@ -37,6 +38,8 @@ jobs:
     steps:
       - name: git co
         uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846
+
+      - uses: ./.github/actions/install-protoc
 
       - name: meta
         id: release-tag-meta

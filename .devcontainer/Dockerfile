@@ -18,6 +18,15 @@ ARG YQ_VERSION=v4.2.0
 RUN curl --proto '=https' --tlsv1.3 -vsSfLo /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64" \
     && chmod +x /usr/local/bin/yq
 
+FROM docker.io/curlimages/curl:latest as protoc
+ARG PROTOC_VERSION=v3.20.0
+WORKDIR /tmp
+RUN arch="$(uname -m)" ; \
+    version="$PROTOC_VERSION" ; \
+    curl --proto '=https' --tlsv1.3 -vsSfLo protoc.zip  "https://github.com/google/protobuf/releases/download/$version/protoc-${version#v}-linux-$arch.zip" && \
+    unzip protoc.zip bin/protoc && \
+    chmod 755 bin/protoc
+
 #
 # Main image
 #
@@ -63,6 +72,10 @@ COPY --from=cargo-deny /usr/local/bin/cargo-deny /usr/local/bin/cargo-deny
 COPY --from=k3d /usr/local/bin/k3d /usr/local/bin/k3d
 COPY --from=kubectl /usr/local/bin/kubectl /usr/local/bin/kubectl
 COPY --from=yq /usr/local/bin/yq /usr/local/bin/yq
+
+COPY --from=protoc /tmp/bin/protoc /usr/local/bin/protoc
+ENV PROTOC_NO_VENDOR=1
+ENV PROTOC=/usr/local/bin/protoc
 
 ENTRYPOINT ["/usr/local/share/docker-init.sh"]
 CMD ["sleep", "infinity"]
